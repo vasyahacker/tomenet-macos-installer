@@ -1,6 +1,6 @@
 # TomeNET MacOS installer
 
-Make [TomeNET](https://tomenet.eu) native application for MacOS with Tangar's fonts (without music pack)
+Make [TomeNET](https://tomenet.eu) native application for MacOS with [Tangar's](https://tangar.info/en/t/tileset) fonts (without music pack)
 
 ### Requirements
 - [XQuartz](https://www.xquartz.org)
