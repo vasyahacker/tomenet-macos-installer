@@ -29,8 +29,8 @@ RUN_SH='#!/bin/sh
 
 MAIN_FONT="16x22tg"
 SMALLER_FONT="8x13"
-xset fp+ ~/.fonts
-xset fp rehash
+/opt/X11/bin/xset fp+ ~/.fonts
+/opt/X11/bin/xset fp rehash
 
 export TOMENET_X11_FONT=${MAIN_FONT}
 export TOMENET_X11_FONT_MIRROR=${SMALLER_FONT}
