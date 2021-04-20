@@ -2,7 +2,7 @@
 
 # TARGET_DIR='./TomeNET.app'
 TARGET_DIR=~/Desktop/TomeNET.app
-TOMENET_URL='https://tomenet.eu/downloads/TomeNET-473-client-OSX-amd64-withsfx.tar.bz2'
+TOMENET_URL='https://tomenet.eu/downloads/TomeNET-474a-client-OSX-amd64-withsfx.tar.bz2'
 FONTS_URL='https://drive.google.com/uc?export=download&id=1CCnHi_BABM_n7ybYL_eiABOyd-kEL_xp'
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
 # FONT_URL='http://tangar.info/wp-content/uploads/2016/03/16x24t.pcf'
@@ -15,13 +15,13 @@ INFO_PLIST='<?xml version="1.0" encoding="UTF-8"?>
 		<key>CFBundleIconFile</key>
 		<string>icon.icns</string>
 		<key>CFBundleInfoDictionaryVersion</key>
-		<string>4.7.3</string>
+		<string>4.7.4a</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleSignature</key>
 		<string></string>
 		<key>CFBundleVersion</key>
-		<string>4.7.3</string>
+		<string>4.7.4a</string>
 	</dict>
 </plist>'
 
