@@ -1,15 +1,20 @@
 # TomeNET MacOS installer
 
-Make [TomeNET](https://tomenet.eu) native application for MacOS with [Tangar's](https://tangar.info/en/t/tileset) fonts (without music pack)
+Build [TomeNET](https://tomenet.eu) native application for MacOS 
 
 ### Requirements
-- [XQuartz](https://www.xquartz.org)
+[XQuartz](https://www.xquartz.org), SDL_mixer and more - no matter, **the script will take care of everything**
 
 ### Install
+Just run in terminal:
+```
 curl -s -L https://github.com/vasyahacker/tomenet-macos-installer/raw/main/tomenet-macos-installer.sh | sh
+```
+Then follow the instructions and TomeNET.app will appear on your desktop
 
 ### Screenshots
 
-![icon, version, size](https://github.com/vasyahacker/tomenet-macos-installer/raw/main/scrn/screen-1.png "icon, version, size")
+![icon, version, size](https://github.com/vasyahacker/tomenet-macos-installer/raw/main/scrn/scr.png "main window")
 
-![game screen](https://github.com/vasyahacker/tomenet-macos-installer/raw/main/scrn/screen-2.png "game screen")
+### Tested
+- MacOS 12.6 Intel
