@@ -192,7 +192,7 @@ Yn "Install music?" && {
 		7zz x -ptomenet music.7z &>/dev/null || DONE="failed"
 		rm -f music.7z
 		mv -f music/* ./Contents/MacOS/lib/xtra/music/
-		# rm -rf music
+		rm -rf music
 	endwait $DONE
 }
 
