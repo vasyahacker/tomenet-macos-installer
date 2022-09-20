@@ -2,12 +2,13 @@
 VERSION='4.8.0'
 
 TARGET_DIR=~/Desktop/TomeNET.app
+# RELEASE="tomenet"
 RELEASE="tomenet-$VERSION"
 LIBS_REQUIRED='libvorbis libogg sdl_mixer sdl_sound sdl libmikmod libgcrypt'
 TOMENET_URL="https://www.tomenet.eu/downloads/$RELEASE.tar.bz2"
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
 
-#FONTS_URL='https://drive.google.com/uc?export=download&id=1CCnHi_BABM_n7ybYL_eiABOyd-kEL_xp'
+FONTS_URL='https://drive.google.com/uc?export=download&id=1CCnHi_BABM_n7ybYL_eiABOyd-kEL_xp'
 # FONT_URL='http://tangar.info/wp-content/uploads/2016/03/16x24t.pcf'
 ARCH=$(arch)
 
@@ -37,19 +38,17 @@ INFO_PLIST="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 
 RUN_SH='#!/bin/sh
 
-#MAIN_FONT="16x22tg"
-#SMALLER_FONT="8x13"
-#/opt/X11/bin/xset fp+ ~/.fonts
-#/opt/X11/bin/xset fp rehash
+MAIN_FONT="16x22tg"
+SMALLER_FONT="8x13"
 
-#export TOMENET_X11_FONT=${MAIN_FONT}
-#export TOMENET_X11_FONT_MIRROR=${SMALLER_FONT}
-#export TOMENET_X11_FONT_RECALL=${SMALLER_FONT}
-#export TOMENET_X11_FONT_CHOICE=${SMALLER_FONT}
-#export TOMENET_X11_FONT_TERM_4=${SMALLER_FONT}
-#export TOMENET_X11_FONT_TERM_5=${SMALLER_FONT}
-#export TOMENET_X11_FONT_TERM_6=${SMALLER_FONT}
-#export TOMENET_X11_FONT_TERM_7=${SMALLER_FONT}
+export TOMENET_X11_FONT=${MAIN_FONT}
+export TOMENET_X11_FONT_MIRROR=${SMALLER_FONT}
+export TOMENET_X11_FONT_RECALL=${SMALLER_FONT}
+export TOMENET_X11_FONT_CHOICE=${SMALLER_FONT}
+export TOMENET_X11_FONT_TERM_4=${SMALLER_FONT}
+export TOMENET_X11_FONT_TERM_5=${SMALLER_FONT}
+export TOMENET_X11_FONT_TERM_6=${SMALLER_FONT}
+export TOMENET_X11_FONT_TERM_7=${SMALLER_FONT}
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
 	DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
@@ -57,6 +56,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 	[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+
+/opt/X11/bin/xset fp+ $DIR/fonts
+/opt/X11/bin/xset fp rehash
+
 cd $DIR
 _arch=$(arch)
 export DYLD_LIBRARY_PATH=./$_arch
@@ -121,6 +124,19 @@ mfget() {
   return 0
 }
 
+check_req_pkg() {
+	_pkg="$1"
+	_cmd="$2"
+	type $2 &>/dev/null || {
+	  echo "$_pkg not installed"
+	  Yn "Install $_pkg?" && {
+	  	brew install $_pkg
+	  	return 0
+	  } || return 1
+	}
+	return 0
+}
+
 mkdir -p $TARGET_DIR
 cd $TARGET_DIR
 
@@ -134,15 +150,8 @@ type brew &>/dev/null || {
 echo "The libraries will be installed now: $LIBS_REQUIRED"
 Yn "Run brew install $LIBS_REQUIRED" && brew install $LIBS_REQUIRED
 
-type 7zz &>/dev/null || {
-  echo '7zip not installed'
-  Yn "Install 7zip?" && brew install 7zip
-}
-
-type Xquartz &>/dev/null || {
-  echo 'Xquartz not installed'
-  Yn "Install xquartz?" && brew install xquartz
-}
+#check_req_pkg "git" "git"  || fail "git is required!"
+check_req_pkg xquartz Xquartz || fail "Xquartz is required!"
 
 
 echo "Downloading TomeNET sources..."
@@ -150,7 +159,7 @@ download $TOMENET_URL tomenet.tar.bz2
 echo "Unpacking..."
 tar xjf tomenet.tar.bz2
 rm -f tomenet.tar.bz2
-#git clone https://github.com/TomenetGame/tomenet.git
+# git clone https://github.com/TomenetGame/tomenet.git
 echo "Building..."
 cd "$RELEASE/src"
 make -f makefile.osx install || fail "build error"
@@ -172,18 +181,20 @@ for _lib in $LIBS_REQUIRED; do
 	Yn "brew remove $_lib" && brew remove $_lib
 done
 
-echo "Downloading sound pack.."
-mfget "http://www.mediafire.com/?issv5sdv7kv3odq" sound.7z || DONE="failed"
-#mfget "http://www.mediafire.com/?eqx5m1mk553y6ow" sound.7z || DONE="failed" #tangar
-DONE="Done"
-startwait "Installing sound pack..."
-	7zz x sound.7z &>/dev/null || DONE="failed"
-	rm -f sound.7z
-	mv -f sound/* ./Contents/MacOS/lib/xtra/sound/
-	rm -rf sound
-endwait $DONE
+Yn "Install sound?" && check_req_pkg "7zip" "7zz" && {
+	echo "Downloading sound pack.."
+	mfget "http://www.mediafire.com/?issv5sdv7kv3odq" sound.7z || DONE="failed"
+	#mfget "http://www.mediafire.com/?eqx5m1mk553y6ow" sound.7z || DONE="failed" #tangar
+	DONE="Done"
+	startwait "Installing sound pack..."
+		7zz x sound.7z &>/dev/null || DONE="failed"
+		rm -f sound.7z
+		mv -f sound/* ./Contents/MacOS/lib/xtra/sound/
+		rm -rf sound
+	endwait $DONE
+}
 
-Yn "Install music?" && {
+Yn "Install music?" && check_req_pkg "7zip" "7zz" && {
 	echo "Downloading music pack.."
 	mfget "http://www.mediafire.com/?3j87kp3fgzpqrqn" music.7z || DONE="failed"
 	DONE="Done"
@@ -197,21 +208,29 @@ Yn "Install music?" && {
 }
 
 Yn "brew remove 7zip" && brew remove 7zip
+# Yn "brew remove git" && brew remove git
 
-#DONE="Done"
-#startwait "Installing Tangar's fonts..."
-#	download $FONTS_URL fonts.zip && unzip -q fonts.zip || DONE="Error"
-#	rm -f fonts.zip
-#
-#	mkdir -p ~/.fonts
-#
-#	cp ./pcf/* ~/.fonts/
-#	rm -rf ./pcf
-#
-#	cp ./prf/* ./Contents/MacOS/lib/user/
-# #for i in `find . -name "font-custom-*"`; do mv "$i" "$(printf "$i"|tr "[:upper:]" "[:lower:]")";done
-#	rm -rf ./prf
-#endwait $DONE
+#Yn "Install Tnagra's fonts" && {
+	echo "Turning off font_map_solid_walls.."
+	sed -i '' 's/Y:font_map_solid_walls/X:font_map_solid_walls/' ./Contents/MacOS/lib/user/options.prf
+
+	DONE="Done"
+	startwait "Installing Tangar's fonts..."
+		_fdir="./Contents/MacOS/fonts"
+		download $FONTS_URL fonts.zip && unzip -q fonts.zip || DONE="Error"
+		rm -f fonts.zip
+
+		mkdir -p $_fdir
+		cp ./pcf/* $_fdir
+		(cd $_fdir &&	/opt/X11/bin/mkfontdir)
+
+		rm -rf ./pcf
+
+		cp ./prf/* ./Contents/MacOS/lib/user/
+	#for i in `find . -name "font-custom-*"`; do mv "$i" "$(printf "$i"|tr "[:upper:]" "[:lower:]")";done
+		rm -rf ./prf
+	endwait $DONE
+#}
 
 DONE="Done"
 startwait "Make TomeNET original icon for MacOS app..."
@@ -240,3 +259,6 @@ printf "$INFO_PLIST" > ./Contents/Info.plist
 echo "Complete!"
 echo "Now you can open $TARGET_DIR (XQuartz is required)"
 Yn "Open $TARGET_DIR now?" && open $TARGET_DIR
+
+exit 0
+
