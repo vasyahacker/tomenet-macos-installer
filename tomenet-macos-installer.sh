@@ -1,20 +1,18 @@
-#!/bin/sh
-VERSION='4.8.0'
+#!/bin/bash
+# shellcheck disable=SC2166
+VERSION='4.9.0'
 
 TARGET_DIR=~/Desktop/TomeNET.app
-# RELEASE="tomenet"
 RELEASE="tomenet-$VERSION"
-LIBS_REQUIRED='libvorbis libogg sdl_mixer sdl_sound sdl libmikmod libgcrypt'
+LIBS_REQUIRED='libvorbis libogg sdl2 sdl2_mixer sdl2_sound' # libmikmod libgcrypt
 TOMENET_URL="https://www.tomenet.eu/downloads/$RELEASE.tar.bz2"
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
 
 FONTS_URL='https://drive.google.com/uc?export=download&id=1CCnHi_BABM_n7ybYL_eiABOyd-kEL_xp'
-# FONT_URL='http://tangar.info/wp-content/uploads/2016/03/16x24t.pcf'
 ARCH=$(arch)
 
 RED=$(printf "\033[31m")
 GREEN=$(printf "\033[32m")
-BGBLUE=$(printf "\033\033[1m")
 NORMAL=$(printf "\033[0m")
 
 INFO_PLIST="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -67,9 +65,9 @@ export DYLD_LIBRARY_PATH=./$_arch
 '
 
 download(){
-	local url=$1
-	local to=$2
-	curl -s $url -L --output $to
+	_url=$1
+	_to=$2
+	curl -s "$_url" -L --output "$_to"
 }
 
 fail() {
@@ -85,18 +83,19 @@ read_char() {
 
 Yn() {
   _prompt="$1"
+  _ans=""
   printf "%s [Y/n]: " "$_prompt"
   while IFS= read_char _ans
   do
-    [ "$_ans" == "n" -o "$_ans" == "N" ] && { printf "${RED}N${NORMAL}\n"; return 1; }
-    [ "$_ans" == "" -o "$_ans" == "y" -o "$_ans" = "Y" ] && { printf "${GREEN}Y${NORMAL}\n"; return 0; }
+    [ "$_ans" = "n" -o "$_ans" = "N" ] && { printf "%sN%s\n" "${RED}" "${NORMAL}"; return 1; }
+    [ "$_ans" = "" -o "$_ans" = "y" -o "$_ans" = "Y" ] && { printf "%sY%s\n" "${GREEN}" "${NORMAL}"; return 0; }
   done
 }
 
 startwait() {
   tput civis
   sp='/-\|'
-  printf "$1"
+  printf "%s" "$1"
   while :;do 
       temp=${sp#?}
       printf "[%c]" "$sp" 
@@ -104,7 +103,7 @@ startwait() {
       printf "\b\b\b"
     sleep 0.05
   done &
-  trap "kill $!" EXIT
+  trap 'kill $!' EXIT
 }
 
 endwait() {
@@ -112,7 +111,7 @@ endwait() {
  kill $! 
  wait $! 2>/dev/null 
  trap " " EXIT 
- printf " [ ${GREEN}$1${NORMAL} ]\n"
+ printf " [ %s%s%s ]\n" "${GREEN}" "$1" "${NORMAL}"
 }
 
 mfget() {
@@ -127,10 +126,10 @@ mfget() {
 check_req_pkg() {
 	_pkg="$1"
 	_cmd="$2"
-	type $2 &>/dev/null || {
+	type "$_cmd" >/dev/null || {
 	  echo "$_pkg not installed"
 	  Yn "Install $_pkg?" && {
-	  	brew install $_pkg
+	  	brew install "$_pkg"
 	  	return 0
 	  } || return 1
 	}
@@ -138,7 +137,7 @@ check_req_pkg() {
 }
 
 mkdir -p $TARGET_DIR
-cd $TARGET_DIR
+cd $TARGET_DIR || fail "can't 'cd $TARGET_DIR'"
 
 type brew &>/dev/null || {
   echo 'Homebrew not installed'
@@ -146,13 +145,12 @@ type brew &>/dev/null || {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 }
 
-
 echo "The libraries will be installed now: $LIBS_REQUIRED"
+# shellcheck disable=SC2086
 Yn "Run brew install $LIBS_REQUIRED" && brew install $LIBS_REQUIRED
 
 #check_req_pkg "git" "git"  || fail "git is required!"
 check_req_pkg xquartz Xquartz || fail "Xquartz is required!"
-
 
 echo "Downloading TomeNET sources..."
 download $TOMENET_URL tomenet.tar.bz2
@@ -161,24 +159,27 @@ tar xjf tomenet.tar.bz2
 rm -f tomenet.tar.bz2
 # git clone https://github.com/TomenetGame/tomenet.git
 echo "Building..."
-cd "$RELEASE/src"
-make -f makefile.osx install || fail "build error"
+cd "$RELEASE/src" || fail "can't '$RELEASE/src'"
+sed -i -e 's/sdl-config/sdl2-config/g' makefile.osx
+sed -i -e 's/-lSDL\_mixer/-lSDL2\_mixer/g' makefile.osx
+make -f makefile.osx tomenet || fail "build error"
 echo "Buid complete!"
-cd $TARGET_DIR
+cd $TARGET_DIR || fail "can't 'cd $TARGET_DIR'"
 mkdir -p {Contents/MacOS,Contents/Resources}
-mv $RELEASE/{COPYING,lib,TomeNET-Guide.txt,.tomenetrc,tomenet.ini.default} ./Contents/MacOS/
-mv $RELEASE/tomenet ./Contents/MacOS/tomenet-$ARCH
+mv $RELEASE/{lib,TomeNET-Guide*,.tomenetrc,tomenet.ini.default} ./Contents/MacOS/
+mv $RELEASE/src/tomenet "./Contents/MacOS/tomenet-$ARCH"
 rm -rf $RELEASE
 
 echo "Copying libs to app folder..."
-mkdir -p $TARGET_DIR/Contents/MacOS/$ARCH
+mkdir -p "$TARGET_DIR/Contents/MacOS/$ARCH"
 for _lib in $LIBS_REQUIRED; do
-	_libs="$(brew --prefix $_lib)/lib/*.dylib"
-	cp -v $_libs $TARGET_DIR/Contents/MacOS/$ARCH
+	_libs="$(brew --prefix "$_lib")/lib/*.dylib"
+	# shellcheck disable=SC2086
+	cp -v $_libs "$TARGET_DIR/Contents/MacOS/$ARCH"
 done
 
 for _lib in $LIBS_REQUIRED; do
-	Yn "brew remove $_lib" && brew remove $_lib
+	Yn "brew remove $_lib" && brew remove "$_lib"
 done
 
 Yn "Install sound?" && check_req_pkg "7zip" "7zz" && {
@@ -210,27 +211,23 @@ Yn "Install music?" && check_req_pkg "7zip" "7zz" && {
 Yn "brew remove 7zip" && brew remove 7zip
 # Yn "brew remove git" && brew remove git
 
-#Yn "Install Tnagra's fonts" && {
+Yn "Install Tnagra's fonts" && {
 	echo "Turning off font_map_solid_walls.."
 	sed -i '' 's/Y:font_map_solid_walls/X:font_map_solid_walls/' ./Contents/MacOS/lib/user/options.prf
 
 	DONE="Done"
 	startwait "Installing Tangar's fonts..."
 		_fdir="./Contents/MacOS/fonts"
-		download $FONTS_URL fonts.zip && unzip -q fonts.zip || DONE="Error"
+		download "$FONTS_URL" fonts.zip && unzip -q fonts.zip || DONE="Error"
 		rm -f fonts.zip
-
 		mkdir -p $_fdir
 		cp ./pcf/* $_fdir
 		(cd $_fdir &&	/opt/X11/bin/mkfontdir)
-
 		rm -rf ./pcf
-
 		cp ./prf/* ./Contents/MacOS/lib/user/
-	#for i in `find . -name "font-custom-*"`; do mv "$i" "$(printf "$i"|tr "[:upper:]" "[:lower:]")";done
 		rm -rf ./prf
 	endwait $DONE
-#}
+}
 
 DONE="Done"
 startwait "Make TomeNET original icon for MacOS app..."
@@ -252,13 +249,12 @@ startwait "Make TomeNET original icon for MacOS app..."
 	mv icon.icns ./Contents/Resources
 endwait $DONE
 
-printf "$RUN_SH" > ./Contents/MacOS/run.sh
+printf "%s" "$RUN_SH" > ./Contents/MacOS/run.sh
 chmod +x ./Contents/MacOS/run.sh
-printf "$INFO_PLIST" > ./Contents/Info.plist
+printf "%s" "$INFO_PLIST" > ./Contents/Info.plist
 
 echo "Complete!"
 echo "Now you can open $TARGET_DIR (XQuartz is required)"
 Yn "Open $TARGET_DIR now?" && open $TARGET_DIR
 
 exit 0
-
