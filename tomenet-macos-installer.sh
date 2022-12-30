@@ -168,6 +168,7 @@ cd $TARGET_DIR || fail "can't 'cd $TARGET_DIR'"
 mkdir -p {Contents/MacOS,Contents/Resources}
 mv $RELEASE/{lib,TomeNET-Guide*,.tomenetrc,tomenet.ini.default} ./Contents/MacOS/
 mv $RELEASE/src/tomenet "./Contents/MacOS/tomenet-$ARCH"
+strip "./Contents/MacOS/tomenet-$ARCH"
 rm -rf $RELEASE
 
 echo "Copying libs to app folder..."
