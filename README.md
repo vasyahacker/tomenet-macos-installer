@@ -17,4 +17,4 @@ Then follow the instructions and TomeNET.app will appear on your desktop
 ![icon, version, size](https://github.com/vasyahacker/tomenet-macos-installer/raw/main/scrn/scr.png "main window")
 
 ### Tested
-- MacOS 12.6 Intel
+- MacOS 13.1 Intel
