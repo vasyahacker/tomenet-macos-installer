@@ -34,33 +34,31 @@ INFO_PLIST="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 	</dict>
 </plist>"
 
-RUN_SH='#!/bin/sh
+RUN_SH='#!/bin/bash
 
-MAIN_FONT="16x22tg"
-SMALLER_FONT="8x13"
-
-export TOMENET_X11_FONT=${MAIN_FONT}
-export TOMENET_X11_FONT_MIRROR=${SMALLER_FONT}
-export TOMENET_X11_FONT_RECALL=${SMALLER_FONT}
-export TOMENET_X11_FONT_CHOICE=${SMALLER_FONT}
-export TOMENET_X11_FONT_TERM_4=${SMALLER_FONT}
-export TOMENET_X11_FONT_TERM_5=${SMALLER_FONT}
-export TOMENET_X11_FONT_TERM_6=${SMALLER_FONT}
-export TOMENET_X11_FONT_TERM_7=${SMALLER_FONT}
 SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+while [ -h "$SOURCE" ]; do
 	DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 	SOURCE="$(readlink "$SOURCE")"
-	[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+	[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-/opt/X11/bin/xset fp+ $DIR/fonts
-/opt/X11/bin/xset fp rehash
+[ -e ~/.tomenetrc ] || cp "$DIR/.tomenetrc" ~/
+
+osascript -e "display dialog \"Select TomeNET main window font:\" buttons {\"Default font\", \"Tangars font\"} \
+default button \"Tangars font\" cancel button \"Default font\""  > /dev/null 2>&1 && {
+  /opt/X11/bin/xset fp+ "$DIR/fonts"
+  /opt/X11/bin/xset fp rehash
+  sed -i -e "s/^Mainwindow_Font.*$/Mainwindow_Font 16x22tg/" ~/.tomenetrc
+  true
+} || {
+  sed -i -e "s/^Mainwindow_Font.*tg$/Mainwindow_Font 8x13/" ~/.tomenetrc
+}
 
 cd $DIR
-_arch=$(arch)
-export DYLD_LIBRARY_PATH=./$_arch
+_arch="$(arch)"
+export DYLD_LIBRARY_PATH="./$_arch"
 ./tomenet-$_arch &
 '
 
@@ -212,7 +210,7 @@ Yn "Install music?" && check_req_pkg "7zip" "7zz" && {
 Yn "brew remove 7zip" && brew remove 7zip
 # Yn "brew remove git" && brew remove git
 
-Yn "Install Tnagra's fonts" && {
+# Yn "Install Tnagra's fonts" && {
 	echo "Turning off font_map_solid_walls.."
 	sed -i '' 's/Y:font_map_solid_walls/X:font_map_solid_walls/' ./Contents/MacOS/lib/user/options.prf
 
@@ -228,7 +226,7 @@ Yn "Install Tnagra's fonts" && {
 		cp ./prf/* ./Contents/MacOS/lib/user/
 		rm -rf ./prf
 	endwait $DONE
-}
+# }
 
 DONE="Done"
 startwait "Make TomeNET original icon for MacOS app..."
