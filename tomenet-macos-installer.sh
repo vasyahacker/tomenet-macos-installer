@@ -61,7 +61,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 cd $DIR
 _arch=$(arch)
 export DYLD_LIBRARY_PATH=./$_arch
-./tomenet-$_arch -p18348 -m europe.tomenet.eu &
+./tomenet-$_arch &
 '
 
 download(){
