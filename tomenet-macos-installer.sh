@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2166
 VERSION='4.9.0'
 
 TARGET_DIR=~/Desktop/TomeNET.app
 RELEASE="tomenet-$VERSION"
-LIBS_REQUIRED='libvorbis libogg sdl2 sdl2_mixer sdl2_sound' # libmikmod libgcrypt
+LIBS_REQUIRED='mpg123 flac libmodplug libvorbis libogg sdl2 sdl2_mixer sdl2_sound' # libmikmod libgcrypt
 TOMENET_URL="https://www.tomenet.eu/downloads/$RELEASE.tar.bz2"
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
 
@@ -34,7 +34,7 @@ INFO_PLIST="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 	</dict>
 </plist>"
 
-RUN_SH='#!/bin/bash
+RUN_SH='#!/usr/bin/env bash
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/X11/bin
 
 type Xquartz > /dev/null 2>&1 || {
