@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2166
-VERSION='4.9.0'
+VERSION='4.9.0a'
 
 TARGET_DIR=~/Desktop/TomeNET.app
 RELEASE="tomenet-$VERSION"
