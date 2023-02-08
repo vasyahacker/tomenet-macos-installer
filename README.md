@@ -18,3 +18,14 @@ Then follow the instructions and TomeNET.app will appear on your desktop
 
 ### Tested
 - MacOS 13.1 Intel
+- MacOS 13.1 M1
+- MacOS 13.1 M1 Max
+
+If you get a message: "The application "TomeNET" cannot be opened." try:
+```bash
+sudo xattr -r -d com.apple.quarantine /path/to/TomeNET.app
+```
+
+### Thanks
+- n0izzz
+- ghostiam
