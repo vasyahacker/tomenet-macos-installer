@@ -4,9 +4,12 @@ VERSION='4.9.0c'
 
 TARGET_DIR=~/Desktop/TomeNET.app
 RELEASE="tomenet-$VERSION"
-LIBS_REQUIRED='mpg123 flac libmodplug libvorbis libogg sdl2 sdl2_mixer sdl2_sound' # libmikmod libgcrypt
+LIBS_REQUIRED='sdl2_mixer sdl2_sound sdl2 mpg123 flac libmodplug libvorbis libogg fluid-synth opusfile' # libmikmod libgcrypt
 TOMENET_URL="https://www.tomenet.eu/downloads/$RELEASE.tar.bz2"
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
+
+SOUND_URL='https://www.mediafire.com/file/issv5sdv7kv3odq/TomeNET-soundpack.7z/file'
+MUSIC_URL='https://www.mediafire.com/file/3j87kp3fgzpqrqn/TomeNET-musicpack.7z/file'
 
 FONTS_URL='https://drive.google.com/uc?export=download&id=1CCnHi_BABM_n7ybYL_eiABOyd-kEL_xp'
 ARCH=$(arch)
@@ -34,6 +37,7 @@ INFO_PLIST="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 	</dict>
 </plist>"
 
+# shellcheck disable=SC2016
 RUN_SH='#!/usr/bin/env bash
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/X11/bin
 
@@ -80,7 +84,7 @@ download(){
 }
 
 fail() {
- echo "ERROR: $1"
+ echo "${RED}ERROR: $1${NORMAL}"
  exit 1
 }
 
@@ -194,28 +198,28 @@ done
 
 Yn "Install sound?" && check_req_pkg "7zip" "7zz" && {
 	echo "Downloading sound pack.."
-	mfget "http://www.mediafire.com/?issv5sdv7kv3odq" sound.7z || DONE="failed"
+	mfget "$SOUND_URL" sound.7z || DONE="${RED}failed${NORMAL}"
 	#mfget "http://www.mediafire.com/?eqx5m1mk553y6ow" sound.7z || DONE="failed" #tangar
 	DONE="Done"
 	startwait "Installing sound pack..."
-		7zz x sound.7z &>/dev/null || DONE="failed"
+		7zz x sound.7z &>/dev/null || DONE="${RED}failed${NORMAL}"
 		rm -f sound.7z
 		mv -f sound/* ./Contents/MacOS/lib/xtra/sound/
 		rm -rf sound
-	endwait $DONE
+	endwait "$DONE"
 }
 
 Yn "Install music?" && check_req_pkg "7zip" "7zz" && {
 	echo "Downloading music pack.."
-	mfget "http://www.mediafire.com/?3j87kp3fgzpqrqn" music.7z || DONE="failed"
+	mfget "$MUSIC_URL" music.7z || DONE="${RED}failed${NORMAL}"
 	DONE="Done"
 	#mfget "http://www.mediafire.com/?nu09e6a5i4fo0gf" music.7z || DONE="failed" #tangar
 	startwait "Installing music pack..."
-		7zz x -ptomenet music.7z &>/dev/null || DONE="failed"
+		7zz x -ptomenet music.7z &>/dev/null || DONE="${RED}failed${NORMAL}"
 		rm -f music.7z
 		mv -f music/* ./Contents/MacOS/lib/xtra/music/
 		rm -rf music
-	endwait $DONE
+	endwait "$DONE"
 }
 
 Yn "brew remove 7zip" && brew remove 7zip
@@ -228,7 +232,7 @@ Yn "brew remove 7zip" && brew remove 7zip
 	DONE="Done"
 	startwait "Installing Tangar's fonts..."
 		_fdir="./Contents/MacOS/fonts"
-		download "$FONTS_URL" fonts.zip && unzip -q fonts.zip || DONE="Error"
+		download "$FONTS_URL" fonts.zip && unzip -q fonts.zip || DONE="${RED}Error${NORMAL}"
 		rm -f fonts.zip
 		mkdir -p $_fdir
 		cp ./pcf/* $_fdir
@@ -236,15 +240,15 @@ Yn "brew remove 7zip" && brew remove 7zip
 		rm -rf ./pcf
 		cp ./prf/* ./Contents/MacOS/lib/user/
 		rm -rf ./prf
-	endwait $DONE
+	endwait "$DONE"
 # }
 
 DONE="Done"
 startwait "Make TomeNET original icon for MacOS app..."
-	download $ICON_URL icon.png || DONE="Error"
-	sips -Z 1024 icon.png > /dev/null || DONE="Error"
+	download $ICON_URL icon.png || DONE="${RED}Error${NORMAL}"
+	sips -Z 1024 icon.png > /dev/null || DONE="${RED}Error${NORMAL}"
 	mkdir icon.iconset
-	sips -z 16 16     icon.png --out icon.iconset/icon_16x16.png > /dev/null || DONE="Error"
+	sips -z 16 16     icon.png --out icon.iconset/icon_16x16.png > /dev/null || DONE="${RED}Error${NORMAL}"
 	sips -z 32 32     icon.png --out icon.iconset/icon_16x16@2x.png > /dev/null
 	sips -z 32 32     icon.png --out icon.iconset/icon_32x32.png > /dev/null
 	sips -z 64 64     icon.png --out icon.iconset/icon_32x32@2x.png > /dev/null
@@ -257,7 +261,7 @@ startwait "Make TomeNET original icon for MacOS app..."
 	iconutil -c icns icon.iconset > /dev/null
 	rm -R icon.iconset
 	mv icon.icns ./Contents/Resources
-endwait $DONE
+endwait "$DONE"
 
 printf "%s" "$RUN_SH" > ./Contents/MacOS/run.sh
 chmod +x ./Contents/MacOS/run.sh
