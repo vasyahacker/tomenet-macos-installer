@@ -4,7 +4,7 @@ VERSION='4.9.0c'
 
 TARGET_DIR=~/Desktop/TomeNET.app
 RELEASE="tomenet-$VERSION"
-LIBS_REQUIRED='sdl2_mixer sdl2_sound sdl2 mpg123 flac libmodplug libvorbis libogg fluid-synth opusfile' # libmikmod libgcrypt
+LIBS_REQUIRED='flac fluid-synth gettext glib lame libmodplug libogg libsndfile libvorbis libxmp mpg123 openssl@3 opus opusfile pcre2 portaudio readline sdl2 sdl2_mixer sdl2_sound' # libmikmod libgcrypt
 TOMENET_URL="https://www.tomenet.eu/downloads/$RELEASE.tar.bz2"
 ICON_URL='https://tomenet.eu/downloads/tomenet4.png'
 
@@ -192,9 +192,8 @@ for _lib in $LIBS_REQUIRED; do
 	cp -v $_libs "$TARGET_DIR/Contents/MacOS/$ARCH"
 done
 
-for _lib in $LIBS_REQUIRED; do
-	Yn "brew remove $_lib" && brew remove "$_lib"
-done
+# shellcheck disable=SC2086
+Yn "brew remove $LIBS_REQUIRED" && brew remove $LIBS_REQUIRED
 
 Yn "Install sound?" && check_req_pkg "7zip" "7zz" && {
 	echo "Downloading sound pack.."
